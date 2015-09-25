@@ -1,9 +1,7 @@
-var gameLayer;
 var ball;
 var scoreLabel;
 var score = 0;
 var bg1, bg2;
-var vSpeed = 0;
 var bs = [];
 var size;
 var ice;
@@ -12,8 +10,6 @@ var HelloWorldLayer = cc.Layer.extend({
     space:null,
     ctor:function () {
         this._super();
-        this.scheduleUpdate();
-        cc.eventManager.addListener(listener, this);
 
         size = cc.winSize;
 
@@ -52,6 +48,16 @@ var HelloWorldLayer = cc.Layer.extend({
         ball.setPosition(size.width/2, 128);
         ball.setScale(2, 2);
         this.addChild(ball, 1);
+
+        cc.eventManager.addListener({
+          event: cc.EventListener.TOUCH_ONE_BY_ONE,
+          swallowTouches: true,
+          onTouchBegan: this.onTouchBegan,
+          onTouchMoved: this.onTouchMoved,
+          onTouchEnded: this.onTouchEnded
+        }, this);
+
+        this.scheduleUpdate();
 
         return true;
     },
@@ -98,6 +104,14 @@ var HelloWorldLayer = cc.Layer.extend({
         this.gameOver();
       }
     },
+    onTouchBegan:function (touch, event) {
+        var pos = ball.getPosition();
+        if(pos.y <= 129) {
+          var j = new cc.JumpBy(0.5, {x: 100, y: 0}, 250, 1);
+          ball.runAction(new cc.Sequence(j, new cc.JumpBy(0.5, {x: -100, y: 0}, 100, 1)));
+        }
+        return true;
+    },
     gameOver: function() {
 
       this.unscheduleUpdate();
@@ -120,32 +134,17 @@ var HelloWorldLayer = cc.Layer.extend({
       scoreLabel = null;
       bg1 = null;
       bg2 = null;
-      block1 = null;
-      block2 = null;
-      vSpeed = 0;
       ice = null;
       bs = [];
       score = 0;
-      cc.director.runScene(new HelloWorldScene);
-    },
-});
-
-var listener = new cc.EventListener.create({
-    event:cc.EventListener.TOUCH_ONE_BY_ONE,
-    onTouchBegan:function (touch, event) {
-        var pos = ball.getPosition();
-        if(pos.y <= 129) {
-          var j = new cc.JumpBy(0.5, {x: 100, y: 0}, 250, 1);
-          ball.runAction(new cc.Sequence(j, new cc.JumpBy(0.5, {x: -100, y: 0}, 100, 1)));
-        }
-        return true;
+      cc.director.runScene(new HelloWorldScene());
     },
 });
 
 var HelloWorldScene = cc.Scene.extend({
     onEnter:function () {
         this._super();
-        gameLayer = new HelloWorldLayer();
-        this.addChild(gameLayer);
+        var layer = new HelloWorldLayer();
+        this.addChild(layer);
     }
 });
